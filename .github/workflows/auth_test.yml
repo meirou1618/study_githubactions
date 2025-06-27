@@ -10,8 +10,8 @@ permissions:
   id-token: write
 
 env:
-  PROJECT_ID: vars.PROJECT_ID
-  PROJECT_NUMBER: vars.PROJECT_NUMBER
+  PROJECT_ID: "${{ vars.PROJECT_ID }}"
+  PROJECT_NUMBER: "${{ vars.PROJECT_NUMBER }}"
 
 jobs:
   auth_test:
