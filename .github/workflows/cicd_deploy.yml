@@ -1,0 +1,63 @@
+name: CICD Deploy
+
+on:
+    workflow_dispatch:
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                python-version: ['3.10']
+                services:
+                  - directory_name: test-app
+                    service_name: mizuki-test-app
+                    dockerfile: Dockerfile
+        permissions:
+            contents: read
+            id-token: write # This is required for requesting the OIDC JWT Token
+        environment:
+            name: TEST
+        steps:
+          - uses: actions/checkout@v4
+          - name: Set up Python
+            uses: actions/setup-python@v4
+            with:
+                python-version: ${{ matrix.python-version }}
+          - name: Install uv
+            uses: astral-sh/setup-uv@v4
+          - name: Install dependencies
+            run: uv sync
+          - name: Format with black
+            if: always()
+            run: uv run black --check --config=pyproject.toml .
+          - name: Lint with ruff
+            if: always()
+            run: uv run ruff check --config=pyproject.toml .
+          - name: Type check with mypy
+            if: always()
+            run: uv run mypy --config-file=pyproject.toml .
+          - name: Set IMAGE_URI
+            run: echo "IMAGE_URI=${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.PROJECT_ID }}/${{ matrix.service.service_name }}/${{ matrix.service.service_name }}:${{ github.sha }}" >> $GITHUB_ENV
+          - name: Auth
+            uses: google-github-actions/auth@v2
+            with:
+              project_id: ${{ vars.PROJECT_ID }}
+              workload_identity_provider: projects/${{ vars.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/test-mizuki-oidc/providers/github-actions
+              service_account: mizuki-test-github-actions@${{ vars.PROJECT_ID }}.iam.gserviceaccount.com
+          - name: "Authorize Docker push"
+            run: gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev
+          - name: Build and Push Container
+            run: |
+                docker build \
+                  --tag ${IMAGE_URI} \
+                  -f ${{ matrix.service.dockerfile }} \
+                  ${{ matrix.service.directory_name }}
+                docker push ${IMAGE_URI}
+          - name: Deploy to Cloud Run
+            run: |
+                gcloud run services update ${{ matrix.service.service_name }} \
+                --platform=managed \
+                --image ${IMAGE_URI} \
+                --region ${{ vars.GCP_REGION }} \
+                --quiet

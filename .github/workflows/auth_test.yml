@@ -5,10 +5,6 @@ run-name: Auth test by @${{ github.actor }}
 on:
   workflow_dispatch: # Manually run
 
-permissions:
-  contents: read
-  id-token: write
-
 jobs:
   auth_test:
     runs-on: ubuntu-latest
