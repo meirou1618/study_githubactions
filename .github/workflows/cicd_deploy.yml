@@ -9,7 +9,7 @@ jobs:
         strategy:
             matrix:
                 python-version: ['3.10']
-                services:
+                service:
                   - directory_name: test-app
                     service_name: mizuki-test-app
                     dockerfile: Dockerfile
