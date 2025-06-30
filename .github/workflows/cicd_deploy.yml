@@ -30,7 +30,7 @@ jobs:
             run: uv sync
           - name: Format with black
             if: always()
-            run: uv run black --check --config=pyproject.toml .
+            run: uv run black --check --config=pyproject.toml '**/*.py'
           - name: Lint with ruff
             if: always()
             run: uv run ruff check --config=pyproject.toml .
