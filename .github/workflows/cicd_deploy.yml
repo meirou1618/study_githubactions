@@ -38,7 +38,7 @@ jobs:
             if: always()
             run: uv run mypy --config-file=pyproject.toml .
           - name: Set IMAGE_URI
-            run: echo "IMAGE_URI=${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.PROJECT_ID }}/${{ matrix.service.service_name }}/${{ matrix.service.service_name }}:${{ github.sha }}" >> $GITHUB_ENV
+            run: echo "IMAGE_URI=${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.PROJECT_ID }}/${{ matrix.service.service_name }}/test-app:${{ github.sha }}" >> $GITHUB_ENV
           - name: Auth
             uses: google-github-actions/auth@v2
             with:
