@@ -10,7 +10,7 @@ jobs:
             matrix:
                 python-version: ['3.10']
                 service:
-                  - directory_name: test-app
+                  - directory_name: src
                     service_name: mizuki-test-app
                     dockerfile: Dockerfile
         permissions:
